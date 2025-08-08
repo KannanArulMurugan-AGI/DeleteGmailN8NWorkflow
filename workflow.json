@@ -44,8 +44,7 @@
     {
       "parameters": {
         "model": "gemini-pro",
-        "prompt": "You are an email classifier. Your task is to determine if an email is related to banking. Bank-related emails contain words like \"bank\", \"account statement\", \"transaction alert\", \"credit card\", \"payment\", \"invoice\", \"receipt\", etc.\n\nAnalyze the following email content and subject. Respond with only a JSON object with a single key \"decision\" which can be either \"DELETE\" or \"KEEP\". Do not add any other text, just the JSON.\n\nEmail Subject: \"{{$json.subject}}\"\nEmail Body: \"{{$json.textAsHtml}}\"",
-        "options": {}
+        "prompt": "You are an email classifier. Your task is to determine if an email is related to banking. Bank-related emails contain words like \"bank\", \"account statement\", \"transaction alert\", \"credit card\", \"payment\", \"invoice\", \"receipt\", etc.\n\nAnalyze the following email content and subject. Respond with only a JSON object with a single key \"decision\" which can be either \"DELETE\" or \"KEEP\". Do not add any other text, just the JSON.\n\nEmail Subject: \"{{$json.subject}}\"\nEmail Body: \"{{$json.textAsHtml}}\""
       },
       "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
       "name": "Gemini Classifier",
