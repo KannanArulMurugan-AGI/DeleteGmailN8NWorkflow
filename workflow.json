@@ -43,26 +43,22 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "prompt": "You are an email classifier. Your task is to determine if an email is related to banking. Bank-related emails contain words like \"bank\", \"account statement\", \"transaction alert\", \"credit card\", \"payment\", \"invoice\", \"receipt\", etc.\n\nAnalyze the following email content and subject. Respond with only a JSON object with a single key \"decision\" which can be either \"DELETE\" or \"KEEP\". Do not add any other text in your response.\n\nEmail Subject: \"{{$json.subject}}\"\nEmail Body: \"{{$json.textAsHtml}}\"",
-        "options": {
-          "response_format": {
-            "type": "json_object"
-          }
-        }
+        "model": "gemini-pro",
+        "prompt": "You are an email classifier. Your task is to determine if an email is related to banking. Bank-related emails contain words like \"bank\", \"account statement\", \"transaction alert\", \"credit card\", \"payment\", \"invoice\", \"receipt\", etc.\n\nAnalyze the following email content and subject. Respond with only a JSON object with a single key \"decision\" which can be either \"DELETE\" or \"KEEP\". Do not add any other text, just the JSON.\n\nEmail Subject: \"{{$json.subject}}\"\nEmail Body: \"{{$json.textAsHtml}}\"",
+        "options": {}
       },
       "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
-      "name": "OpenAI Classifier",
-      "type": "n8n-nodes-base.openAiChat",
-      "typeVersion": 3,
+      "name": "Gemini Classifier",
+      "type": "n8n-nodes-base.googleGeminiChat",
+      "typeVersion": 1,
       "position": [
         1200,
         200
       ],
       "credentials": {
-        "openAiApi": {
-          "id": "YOUR_OPENAI_CREDENTIALS_ID",
-          "name": "OpenAI credentials"
+        "googleGeminiApi": {
+          "id": "YOUR_GEMINI_CREDENTIALS_ID",
+          "name": "Gemini credentials"
         }
       }
     },
@@ -71,7 +67,7 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{$json.choices[0].message.content}}",
+              "value1": "={{$json.candidates[0].content.parts[0].text}}",
               "operation": "contains",
               "value2": "DELETE"
             }
@@ -192,14 +188,14 @@
       "main": [
         [
           {
-            "node": "OpenAI Classifier",
+            "node": "Gemini Classifier",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Classifier": {
+    "Gemini Classifier": {
       "main": [
         [
           {
