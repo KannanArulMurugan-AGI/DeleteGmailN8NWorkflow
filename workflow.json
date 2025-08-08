@@ -1,0 +1,249 @@
+{
+  "name": "AI Email Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "cron",
+        "cronTime": "0 9 * * *",
+        "options": {}
+      },
+      "id": "4f739502-5a72-4631-9f93-2495d4304803",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "filters": {
+          "in": "inbox"
+        },
+        "limit": 10,
+        "options": {}
+      },
+      "id": "e0b1f2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c",
+      "name": "Gmail (Read for AI)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        200
+      ],
+      "credentials": {
+        "gmailApi": {
+          "id": "YOUR_GMAIL_CREDENTIALS_ID",
+          "name": "Gmail credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "prompt": "You are an email classifier. Your task is to determine if an email is related to banking. Bank-related emails contain words like \"bank\", \"account statement\", \"transaction alert\", \"credit card\", \"payment\", \"invoice\", \"receipt\", etc.\n\nAnalyze the following email content and subject. Respond with only a JSON object with a single key \"decision\" which can be either \"DELETE\" or \"KEEP\". Do not add any other text in your response.\n\nEmail Subject: \"{{$json.subject}}\"\nEmail Body: \"{{$json.textAsHtml}}\"",
+        "options": {
+          "response_format": {
+            "type": "json_object"
+          }
+        }
+      },
+      "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+      "name": "OpenAI Classifier",
+      "type": "n8n-nodes-base.openAiChat",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        200
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.choices[0].message.content}}",
+              "operation": "contains",
+              "value2": "DELETE"
+            }
+          ]
+        }
+      },
+      "id": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+      "name": "IF Bank Related?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "delete",
+        "messageId": "={{$node[\"Gmail (Read for AI)\"].json[\"id\"]}}",
+        "options": {}
+      },
+      "id": "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
+      "name": "Gmail (Delete Non-Bank)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 3,
+      "position": [
+        1600,
+        200
+      ],
+      "credentials": {
+        "gmailApi": {
+          "id": "YOUR_GMAIL_CREDENTIALS_ID",
+          "name": "Gmail credentials"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9g",
+      "name": "Skip Deletion",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "filters": {
+          "in": "inbox"
+        },
+        "options": {}
+      },
+      "id": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9g0h",
+      "name": "Gmail (Read All)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        500
+      ],
+      "credentials": {
+        "gmailApi": {
+          "id": "YOUR_GMAIL_CREDENTIALS_ID",
+          "name": "Gmail credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "delete",
+        "messageId": "={{$json.id}}",
+        "options": {
+          "permanently": true
+        }
+      },
+      "id": "f6a7b8c9-d0e1-2f3a-4b5c-6d7e8f9g0h1i",
+      "name": "Gmail (Delete All)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        500
+      ],
+      "credentials": {
+        "gmailApi": {
+          "id": "YOUR_GMAIL_CREDENTIALS_ID",
+          "name": "Gmail credentials"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gmail (Read for AI)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail (Read All)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail (Read for AI)": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Classifier": {
+      "main": [
+        [
+          {
+            "node": "IF Bank Related?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Bank Related?": {
+      "main": [
+        [
+          {
+            "node": "Gmail (Delete Non-Bank)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Deletion",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Gmail (Read All)": {
+      "main": [
+        [
+          {
+            "node": "Gmail (Delete All)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
